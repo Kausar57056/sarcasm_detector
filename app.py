@@ -9,7 +9,7 @@ from transformers import AutoTokenizer
 from sentimixturenet import SentimixtureNet
 
 # Hugging Face Model URL (update with your username)
-HF_MODEL_URL = "https://huggingface.co/YOUR_USERNAME/urdu-sarcasm-model/resolve/main/sentimixture_model.pt"
+HF_MODEL_URL = "https://huggingface.co/kausar57056/urdu-sarcasm-model/resolve/main/sentimixture_model.pt"
 
 # Catch-all error handler for better debugging
 def catch_all_errors():
