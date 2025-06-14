@@ -1,6 +1,13 @@
-import streamlit as st
-import torch
 import os
+
+# Try to import torch, install if missing
+try:
+    import torch
+except ImportError:
+    os.system("pip install torch==2.5.1")
+    import torch
+
+import streamlit as st
 import requests
 import traceback
 from transformers import AutoTokenizer
