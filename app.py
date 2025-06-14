@@ -48,12 +48,14 @@ def load_model():
     try:
         import torch
     except ImportError:
+        st.warning("Installing torch... please wait ⏳")
         os.system("pip install torch==2.5.1")
         import torch
 
     try:
         from transformers import AutoTokenizer
     except ImportError:
+        st.warning("Installing transformers... please wait ⏳")
         os.system("pip install transformers==4.37.2")
         from transformers import AutoTokenizer
 
@@ -63,8 +65,11 @@ def load_model():
     if not os.path.exists(model_path):
         st.info("⬇️ Downloading model from Hugging Face...")
         response = requests.get(HF_MODEL_URL)
+        if response.status_code != 200:
+            raise RuntimeError(f"Model download failed: HTTP {response.status_code}")
         with open(model_path, "wb") as f:
             f.write(response.content)
+        st.success("✅ Model downloaded!")
 
     model = SentimixtureNet()
     model.load_state_dict(torch.load(model_path, map_location=device))
@@ -72,6 +77,5 @@ def load_model():
     tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
     return model.to(device), tokenizer, device
 
-# Run
 if __name__ == "__main__":
     catch_all_errors()
