@@ -2,13 +2,10 @@ import os
 import streamlit as st
 import requests
 import traceback
-from transformers import AutoTokenizer
 from sentimixturenet import SentimixtureNet
 
-# Hugging Face model file (your trained .pt file)
 HF_MODEL_URL = "https://huggingface.co/kausar57056/urdu-sarcasm-model/resolve/main/sentimixture_model.pt"
 
-# Error-handling wrapper
 def catch_all_errors():
     try:
         run_app()
@@ -18,16 +15,13 @@ def catch_all_errors():
         st.text("Traceback:")
         st.text(traceback.format_exc())
 
-# Streamlit UI logic
 def run_app():
     st.title("🤖 Urdu Sarcasm Detection")
     st.markdown("Enter an Urdu tweet and I will tell you if it's sarcastic or not.")
 
-    # Load model and tokenizer
     st.write("🚀 Loading model...")
     model, tokenizer, device = load_model()
 
-    # User input
     tweet = st.text_area("✍️ Enter Urdu Tweet:", height=100)
 
     if st.button("🔍 Predict"):
@@ -49,41 +43,35 @@ def run_app():
         else:
             st.info("🙂 This tweet is **Not Sarcastic**.")
 
-# Model + tokenizer loader
 @st.cache_resource
 def load_model():
     try:
         import torch
     except ImportError:
-        st.warning("Installing torch... please wait ⏳")
         os.system("pip install torch==2.5.1")
         import torch
+
+    try:
+        from transformers import AutoTokenizer
+    except ImportError:
+        os.system("pip install transformers==4.37.2")
+        from transformers import AutoTokenizer
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_path = "sentimixture_model.pt"
 
-    # Download the model if not found locally
     if not os.path.exists(model_path):
         st.info("⬇️ Downloading model from Hugging Face...")
         response = requests.get(HF_MODEL_URL)
-        if response.status_code != 200:
-            raise RuntimeError(f"Download failed with status code {response.status_code}")
         with open(model_path, "wb") as f:
             f.write(response.content)
-        st.success("✅ Model downloaded successfully!")
 
-    st.write("🔧 Initializing model architecture...")
     model = SentimixtureNet()
-    st.write("📦 Loading model weights...")
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
-
-    st.write("🧠 Loading tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
-
     return model.to(device), tokenizer, device
 
-# ✅ Run the app
+# Run
 if __name__ == "__main__":
     catch_all_errors()
-
