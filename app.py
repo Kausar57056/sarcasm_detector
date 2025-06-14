@@ -1,5 +1,3 @@
-import os
-os.system("pip install transformers==4.37.2 --force-reinstall")
 import streamlit as st
 import torch
 import os
