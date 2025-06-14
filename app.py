@@ -57,23 +57,32 @@ def load_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_path = "sentimixture_model.pt"
 
-    # Download from Hugging Face if not already present
-    if not os.path.exists(model_path):
-        st.write("📥 Downloading model from Hugging Face...")
-        response = requests.get(HF_MODEL_URL)
-        if response.status_code != 200:
-            raise RuntimeError(f"Failed to download model: HTTP {response.status_code}")
-        with open(model_path, "wb") as f:
-            f.write(response.content)
+    try:
+        st.write("📥 Checking if model is already downloaded...")
+        if not os.path.exists(model_path):
+            st.write("⬇️ Downloading model from Hugging Face...")
+            response = requests.get(HF_MODEL_URL)
+            if response.status_code != 200:
+                raise RuntimeError(f"Download failed: HTTP {response.status_code}")
+            with open(model_path, "wb") as f:
+                f.write(response.content)
+            st.write("✅ Download complete.")
 
-    # Load model
-    model = SentimixtureNet()
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    model.eval()
+        st.write("🔧 Loading model structure...")
+        model = SentimixtureNet()
+        st.write("📦 Loading model weights...")
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.eval()
 
-    # Load tokenizer
-    tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
-    return model.to(device), tokenizer, device
+        st.write("🧠 Loading tokenizer...")
+        tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
+        st.write("✅ Model and tokenizer loaded.")
 
-# Run app
-catch_all_errors()
+        return model.to(device), tokenizer, device
+
+    except Exception as e:
+        st.error("❌ Error during model loading:")
+        st.code(str(e))
+        st.text("📄 Traceback:")
+        st.text(traceback.format_exc())
+        raise e
