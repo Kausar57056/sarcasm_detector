@@ -1,5 +1,5 @@
 --no-build-isolation
 --prefer-binary
 streamlit==1.33.0
-torch==2.7.1
+torch==2.5.1
 transformers==4.37.2
