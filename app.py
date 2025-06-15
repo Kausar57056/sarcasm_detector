@@ -68,3 +68,4 @@ def load_model():
 
 if __name__ == "__main__":
     catch_all_errors()
+
