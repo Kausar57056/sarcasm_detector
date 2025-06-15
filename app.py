@@ -61,9 +61,11 @@ def load_model():
     try:
         st.write("📦 Initializing model...")
         model = SentimixtureNet()
-        model.load_state_dict(torch.load(model_path, map_location=device))
+        state_dict = torch.load(model_path, map_location=device)
+        model.load_state_dict(state_dict)
         model.to(device)
-        model.eval()
+        model.eval()  # ✅ Make sure model is in eval mode!
+
         st.success("✅ Model initialized.")
     except Exception as e:
         st.error("❌ Failed during model initialization.")
