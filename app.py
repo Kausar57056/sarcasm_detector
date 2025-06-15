@@ -43,7 +43,6 @@ def run_app():
         else:
             st.info("🙂 This tweet is **Not Sarcastic**.")
 
-@st.cache_resource
 def load_model():
     try:
         import torch
@@ -58,6 +57,8 @@ def load_model():
         st.warning("Installing transformers... please wait ⏳")
         os.system("pip install transformers==4.37.2")
         from transformers import AutoTokenizer
+
+    from sentimixturenet import SentimixtureNet
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_path = "sentimixture_model.pt"
@@ -76,6 +77,7 @@ def load_model():
     model.eval()
     tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
     return model.to(device), tokenizer, device
+
 
 if __name__ == "__main__":
     catch_all_errors()
