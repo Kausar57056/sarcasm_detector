@@ -49,6 +49,7 @@ def load_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_path = "sentimixture_model.pt"
 
+    # Download model if not already available
     if not os.path.exists(model_path):
         st.info("⬇️ Downloading model...")
         response = requests.get(HF_MODEL_URL)
@@ -58,13 +59,36 @@ def load_model():
             f.write(response.content)
         st.success("✅ Model downloaded.")
 
-    model = SentimixtureNet()
-    model.load_state_dict(torch.load(model_path, map_location=device), strict=False)
-    model.to(device)
-    model.eval()
+    try:
+        st.write("📦 Initializing model...")
+        model = SentimixtureNet()
 
-    tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
+        st.write("📂 Loading weights into model...")
+        model.load_state_dict(torch.load(model_path, map_location=device), strict=False)
+        st.success("✅ Model weights loaded.")
+
+        model.to(device)
+        model.eval()
+
+    except Exception as e:
+        st.error("❌ Failed to load model weights.")
+        st.code(str(e))
+        st.text("📄 Traceback:")
+        st.text(traceback.format_exc())
+        st.stop()
+
+    # Load tokenizer
+    try:
+        st.write("🔤 Loading tokenizer...")
+        tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
+        st.success("✅ Tokenizer loaded.")
+    except Exception as e:
+        st.error("❌ Failed to load tokenizer.")
+        st.code(str(e))
+        st.stop()
+
     return model, tokenizer, device
+
 
 if __name__ == "__main__":
     catch_all_errors()
