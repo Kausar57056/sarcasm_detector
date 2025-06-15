@@ -59,7 +59,7 @@ def load_model():
             f.write(response.content)
         st.success("✅ Model downloaded.")
 
-    try:
+   try:
         st.write("📦 Initializing model...")
         model = SentimixtureNet()
         state_dict = torch.load(MODEL_FILENAME, map_location=device)
@@ -67,12 +67,13 @@ def load_model():
         model.to(device)
         model.eval()  # ✅ Ensures correct inference behavior
         st.success("✅ Model initialized.")
-    except Exception as e:
+   except Exception as e:
         st.error("❌ Failed during model initialization.")
-        st.code(str(e))
+        st.code(str(e))  # <-- This shows the message
         st.text("📄 Traceback:")
-        st.text(traceback.format_exc())
+        st.text(traceback.format_exc())  # <-- This shows full error
         st.stop()
+
 
     try:
         tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
