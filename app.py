@@ -6,7 +6,9 @@ import traceback
 from transformers import AutoTokenizer
 from sentimixturenet import SentimixtureNet
 
+# 🆗 Make sure this matches Hugging Face filename
 HF_MODEL_URL = "https://huggingface.co/kausar57056/urdu-sarcasm-model/resolve/main/fixed_sentimixture_model.pt"
+MODEL_FILENAME = "fixed_sentimixture_model.pt"
 
 def catch_all_errors():
     try:
@@ -47,25 +49,23 @@ def run_app():
 @st.cache_resource
 def load_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model_path = "sentimixture_model.pt"
 
-    if not os.path.exists(model_path):
+    if not os.path.exists(MODEL_FILENAME):
         st.info("⬇️ Downloading model...")
         response = requests.get(HF_MODEL_URL)
         if response.status_code != 200:
             raise RuntimeError(f"Failed to download model. HTTP {response.status_code}")
-        with open(model_path, "wb") as f:
+        with open(MODEL_FILENAME, "wb") as f:
             f.write(response.content)
         st.success("✅ Model downloaded.")
 
     try:
         st.write("📦 Initializing model...")
         model = SentimixtureNet()
-        state_dict = torch.load(model_path, map_location=device)
+        state_dict = torch.load(MODEL_FILENAME, map_location=device)
         model.load_state_dict(state_dict)
         model.to(device)
-        model.eval()  # ✅ Make sure model is in eval mode!
-
+        model.eval()  # ✅ Ensures correct inference behavior
         st.success("✅ Model initialized.")
     except Exception as e:
         st.error("❌ Failed during model initialization.")
