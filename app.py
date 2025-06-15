@@ -64,7 +64,7 @@ def load_model():
         state_dict = torch.load(MODEL_FILENAME, map_location=device)
         model.load_state_dict(state_dict)
         model.to(device)
-        model.eval()  # ✅ Ensures correct inference behavior
+        model.eval()
         st.success("✅ Model initialized.")
     except Exception as e:
         st.error("❌ Failed during model initialization.")
@@ -74,7 +74,9 @@ def load_model():
         st.stop()
 
     try:
+        st.write("📦 Loading tokenizer...")
         tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
+        st.success("✅ Tokenizer loaded.")
     except Exception as e:
         st.error("❌ Failed to load tokenizer.")
         st.code(str(e))
