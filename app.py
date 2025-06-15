@@ -59,7 +59,7 @@ def load_model():
         st.success("✅ Model downloaded.")
 
     model = SentimixtureNet()
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.load_state_dict(torch.load(model_path, map_location=device), strict=False)
     model.to(device)
     model.eval()
 
