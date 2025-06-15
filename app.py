@@ -43,27 +43,49 @@ def run_app():
         else:
             st.info("🙂 This tweet is **Not Sarcastic**.")
 
+@st.cache_resource
 def load_model():
-    import torch
-    from transformers import AutoTokenizer
+    try:
+        import torch
+        from transformers import AutoTokenizer
+    except ImportError as e:
+        st.error(f"❌ Missing dependency: {e}")
+        raise e
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model_path = "sentimixture_model.pt"
+    try:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model_path = "sentimixture_model.pt"
 
-    if not os.path.exists(model_path):
-        st.info("⬇️ Downloading model from Hugging Face...")
-        response = requests.get(HF_MODEL_URL)
-        if response.status_code != 200:
-            raise RuntimeError(f"Model download failed: HTTP {response.status_code}")
-        with open(model_path, "wb") as f:
-            f.write(response.content)
-        st.success("✅ Model downloaded!")
+        # Step 1: Download model if not present
+        if not os.path.exists(model_path):
+            st.info("⬇️ Downloading model from Hugging Face...")
+            response = requests.get(HF_MODEL_URL)
+            if response.status_code != 200:
+                raise RuntimeError(f"Download failed with status {response.status_code}")
+            with open(model_path, "wb") as f:
+                f.write(response.content)
+            st.success("✅ Model downloaded!")
 
-    model = SentimixtureNet()
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    model.eval()
-    tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
-    return model.to(device), tokenizer, device
+        # Step 2: Load model
+        st.write("🔧 Loading model structure...")
+        model = SentimixtureNet()
+
+        st.write("📦 Loading model weights...")
+        model.load_state_dict(torch.load(model_path, map_location=device))  # <-- possible failure point
+
+        model.eval()
+
+        st.write("🧠 Loading tokenizer...")
+        tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
+
+        return model.to(device), tokenizer, device
+
+    except Exception as e:
+        st.error("❌ Error during model loading:")
+        st.code(str(e))
+        st.text("📄 Traceback:")
+        st.text(traceback.format_exc())
+        raise e
 
 if __name__ == "__main__":
     catch_all_errors()
