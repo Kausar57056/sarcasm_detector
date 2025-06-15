@@ -3,7 +3,14 @@ import streamlit as st
 import requests
 import traceback
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+# dynamically ensure correct transformers version
+try:
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+except ImportError:
+    st.warning("Installing compatible transformers…")
+    os.system("pip install transformers==4.37.2 --quiet")
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 def catch_all_errors():
     try:
