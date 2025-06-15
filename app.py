@@ -6,7 +6,6 @@ import traceback
 from transformers import AutoTokenizer
 from sentimixturenet import SentimixtureNet
 
-# 🆗 Make sure this matches Hugging Face filename
 HF_MODEL_URL = "https://huggingface.co/kausar57056/urdu-sarcasm-model/resolve/main/fixed_sentimixture_model.pt"
 MODEL_FILENAME = "fixed_sentimixture_model.pt"
 
@@ -59,7 +58,7 @@ def load_model():
             f.write(response.content)
         st.success("✅ Model downloaded.")
 
-   try:
+    try:
         st.write("📦 Initializing model...")
         model = SentimixtureNet()
         state_dict = torch.load(MODEL_FILENAME, map_location=device)
@@ -67,13 +66,12 @@ def load_model():
         model.to(device)
         model.eval()  # ✅ Ensures correct inference behavior
         st.success("✅ Model initialized.")
-   except Exception as e:
+    except Exception as e:
         st.error("❌ Failed during model initialization.")
-        st.code(str(e))  # <-- This shows the message
+        st.code(str(e))
         st.text("📄 Traceback:")
-        st.text(traceback.format_exc())  # <-- This shows full error
+        st.text(traceback.format_exc())
         st.stop()
-
 
     try:
         tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
