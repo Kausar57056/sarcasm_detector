@@ -2,9 +2,8 @@ import os
 import streamlit as st
 import requests
 import traceback
-from sentimixturenet import SentimixtureNet
-
-HF_MODEL_URL = "https://huggingface.co/kausar57056/urdu-sarcasm-model/resolve/main/sentimixture_model.pt"
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 def catch_all_errors():
     try:
@@ -33,10 +32,9 @@ def run_app():
         input_ids = encoding['input_ids'].to(device)
         attention_mask = encoding['attention_mask'].to(device)
 
-        import torch
         with torch.no_grad():
             output = model(input_ids=input_ids, attention_mask=attention_mask)
-            prediction = torch.argmax(output, dim=1).item()
+            prediction = torch.argmax(output.logits, dim=1).item()
 
         if prediction == 1:
             st.success("😏 This tweet is **Sarcastic**!")
@@ -45,47 +43,12 @@ def run_app():
 
 @st.cache_resource
 def load_model():
-    try:
-        import torch
-        from transformers import AutoTokenizer
-    except ImportError as e:
-        st.error(f"❌ Missing dependency: {e}")
-        raise e
-
-    try:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model_path = "sentimixture_model.pt"
-
-        # Step 1: Download model if not present
-        if not os.path.exists(model_path):
-            st.info("⬇️ Downloading model from Hugging Face...")
-            response = requests.get(HF_MODEL_URL)
-            if response.status_code != 200:
-                raise RuntimeError(f"Download failed with status {response.status_code}")
-            with open(model_path, "wb") as f:
-                f.write(response.content)
-            st.success("✅ Model downloaded!")
-
-        # Step 2: Load model
-        st.write("🔧 Loading model structure...")
-        model = SentimixtureNet()
-
-        st.write("📦 Loading model weights...")
-        model.load_state_dict(torch.load(model_path, map_location=device))  # <-- possible failure point
-
-        model.eval()
-
-        st.write("🧠 Loading tokenizer...")
-        tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
-
-        return model.to(device), tokenizer, device
-
-    except Exception as e:
-        st.error("❌ Error during model loading:")
-        st.code(str(e))
-        st.text("📄 Traceback:")
-        st.text(traceback.format_exc())
-        raise e
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = AutoModelForSequenceClassification.from_pretrained("kausar57056/urdu-sarcasm-model")
+    tokenizer = AutoTokenizer.from_pretrained("kausar57056/urdu-sarcasm-model")
+    model.to(device)
+    model.eval()
+    return model, tokenizer, device
 
 if __name__ == "__main__":
     catch_all_errors()
