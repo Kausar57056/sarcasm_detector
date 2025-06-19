@@ -8,8 +8,7 @@ class RoutingNetwork(nn.Module):
         self.router = nn.Linear(hidden_dim, num_experts)
 
     def forward(self, x):
-        logits = self.router(x)
-        weights = torch.softmax(logits, dim=-1)
+        weights = torch.softmax(self.router(x), dim=-1)
         return weights
 
 class ExpertAttention(nn.Module):
@@ -31,15 +30,13 @@ class SentimixtureNet(nn.Module):
             nn.Linear(hidden_dim, 256),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(256, 2)  # Binary classification
+            nn.Linear(256, 2)
         )
 
     def forward(self, input_ids, attention_mask):
-        outputs = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
-        x = outputs.last_hidden_state
-        routing_weights = self.routing(x)
-        expert_outs = torch.stack([expert(x) for expert in self.experts], dim=-1)
-        routing_weights = routing_weights.unsqueeze(2)
-        mixed_output = (expert_outs * routing_weights).sum(-1)
+        x = self.encoder(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
+        routing_weights = self.routing(x).unsqueeze(2)
+        expert_outputs = torch.stack([expert(x) for expert in self.experts], dim=-1)
+        mixed_output = (expert_outputs * routing_weights).sum(-1)
         pooled = mixed_output.mean(dim=1)
-        return self.classifier(pooled)  # logits
+        return self.classifier(pooled)
